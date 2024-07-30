@@ -27,6 +27,11 @@ android {
     compileSdkVersion 34
     ndkVersion = '23.1.7779620'
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
     defaultConfig {
         applicationId = 'com.example.ev_app'
         minSdkVersion 21
@@ -34,6 +39,9 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+        configurations.all {
+        resolutionStrategy { force 'androidx.work:work-runtime:2.6.0' }
+        }
     }
 
     buildTypes {
@@ -45,14 +53,6 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = '17'
-    }
 }
 
 flutter {
@@ -60,9 +60,9 @@ flutter {
 }
 
 dependencies {
+    implementation 'com.android.support:multidex:2.0.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.0"
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'com.google.android.gms:play-services-maps:18.0.0'
     implementation 'com.google.android.gms:play-services-location:21.0.0'
-    implementation 'io.flutter:flutter_embedding_release:1.0.0'
 }
