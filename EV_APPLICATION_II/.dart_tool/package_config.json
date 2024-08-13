@@ -122,6 +122,12 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "flutter_background",
+      "rootUri": "file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_background-1.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
       "name": "flutter_dialogs",
       "rootUri": "file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_dialogs-3.0.0",
       "packageUri": "lib/",
@@ -138,6 +144,12 @@
       "rootUri": "file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.21",
       "packageUri": "lib/",
       "languageVersion": "3.4"
+    },
+    {
+      "name": "flutter_polyline_points",
+      "rootUri": "file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_polyline_points-2.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
     },
     {
       "name": "flutter_test",
@@ -165,7 +177,7 @@
     },
     {
       "name": "geolocator_android",
-      "rootUri": "file:///Users/outdid/.pub-cache/hosted/pub.dev/geolocator_android-4.5.5",
+      "rootUri": "file:///Users/outdid/.pub-cache/hosted/pub.dev/geolocator_android-4.6.1",
       "packageUri": "lib/",
       "languageVersion": "2.15"
     },
@@ -626,7 +638,7 @@
       "languageVersion": "3.4"
     }
   ],
-  "generated": "2024-07-30T16:23:23.304850Z",
+  "generated": "2024-08-09T12:44:50.008760Z",
   "generator": "pub",
   "generatorVersion": "3.4.4",
   "flutterRoot": "file:///Users/outdid/Development/flutter",

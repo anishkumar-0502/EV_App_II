@@ -74,6 +74,10 @@ fixnum
 2.19
 file:///Users/outdid/.pub-cache/hosted/pub.dev/fixnum-1.1.0/
 file:///Users/outdid/.pub-cache/hosted/pub.dev/fixnum-1.1.0/lib/
+flutter_background
+2.17
+file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_background-1.2.0/
+file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_background-1.2.0/lib/
 flutter_dialogs
 2.17
 file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_dialogs-3.0.0/
@@ -86,6 +90,10 @@ flutter_plugin_android_lifecycle
 3.4
 file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.21/
 file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.21/lib/
+flutter_polyline_points
+3.0
+file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_polyline_points-2.1.0/
+file:///Users/outdid/.pub-cache/hosted/pub.dev/flutter_polyline_points-2.1.0/lib/
 fluttertoast
 2.12
 file:///Users/outdid/.pub-cache/hosted/pub.dev/fluttertoast-8.2.6/
@@ -96,8 +104,8 @@ file:///Users/outdid/.pub-cache/hosted/pub.dev/geolocator-12.0.0/
 file:///Users/outdid/.pub-cache/hosted/pub.dev/geolocator-12.0.0/lib/
 geolocator_android
 2.15
-file:///Users/outdid/.pub-cache/hosted/pub.dev/geolocator_android-4.5.5/
-file:///Users/outdid/.pub-cache/hosted/pub.dev/geolocator_android-4.5.5/lib/
+file:///Users/outdid/.pub-cache/hosted/pub.dev/geolocator_android-4.6.1/
+file:///Users/outdid/.pub-cache/hosted/pub.dev/geolocator_android-4.6.1/lib/
 geolocator_apple
 2.15
 file:///Users/outdid/.pub-cache/hosted/pub.dev/geolocator_apple-2.3.7/
@@ -396,8 +404,8 @@ file:///Users/outdid/.pub-cache/hosted/pub.dev/xdg_directories-1.0.4/
 file:///Users/outdid/.pub-cache/hosted/pub.dev/xdg_directories-1.0.4/lib/
 ev_app
 3.4
-file:///Users/outdid/Desktop/Git/EV_App_II/EV_APPLICATION_II/
-file:///Users/outdid/Desktop/Git/EV_App_II/EV_APPLICATION_II/lib/
+file:///Users/outdid/Desktop/Anish/EV_APP_PHASE_II/EV_App_II/EV_APPLICATION_II/
+file:///Users/outdid/Desktop/Anish/EV_APP_PHASE_II/EV_App_II/EV_APPLICATION_II/lib/
 sky_engine
 3.2
 file:///Users/outdid/Development/flutter/bin/cache/pkg/sky_engine/

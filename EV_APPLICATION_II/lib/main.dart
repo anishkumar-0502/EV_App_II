@@ -8,7 +8,8 @@ import 'src/utilities/User_Model/ImageProvider.dart';
 import 'src/pages/wallet/wallet.dart';
 import 'src/pages/profile/Account/Transaction_Details/transaction_details.dart';
 
-void main() {
+void main() async {
+
   runApp(
     MultiProvider(
       providers: [

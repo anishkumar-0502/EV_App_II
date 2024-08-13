@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'transaction_details.dart';  // Adjust the path as necessary
+import 'transaction_details.dart'; // Adjust the path as necessary
 
 class TransactionHistoryPage extends StatefulWidget {
   final String username;
@@ -57,9 +57,9 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           List<dynamic> transactionData = data['value'];
           List<Map<String, dynamic>> transactions = transactionData.map((transaction) {
             return {
-              'status': transaction['status'],
-              'amount': transaction['amount'],
-              'time': transaction['time'],
+              'status': transaction['status'] ?? 'Unknown', // Default to 'Unknown' if null
+              'amount': transaction['amount'] ?? '0.00',   // Default to '0.00' if null
+              'time': transaction['time'] ?? 'N/A',        // Default to 'N/A' if null
             };
           }).toList();
           setTransactionDetails(transactions);
@@ -79,18 +79,16 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Transaction History', style: TextStyle(color: Colors.white)),
+        title: const Text('Transaction History', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         automaticallyImplyLeading: false, // Hides the default back arrow
         actions: [
           IconButton(
-            icon: Icon(Icons.close, color: Colors.white),
+            icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
       ),
-      
-
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

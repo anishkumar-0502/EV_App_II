@@ -10,7 +10,7 @@ import '../../utilities/QR/qrscanner.dart';
 import '../../utilities/Alert/alert_banner.dart';
 
 class HomeContent extends StatefulWidget {
-  final String? username;
+  final String username;
   final int? userId;
 
   const HomeContent({super.key, required this.username, required this.userId});
@@ -24,12 +24,13 @@ class _HomeContentState extends State<HomeContent> {
   String searchChargerID = '';
   List availableChargers = [];
   List recentSessions = [];
-  String activeFilter = 'Previously Used'; // Initialize with 'Previously Used'
+  String activeFilter = 'Previously Used'; // Set 'Previously Used' as active filter by default
   bool isLoading = true; // State to manage loading
-  late GoogleMapController mapController;
+  GoogleMapController? mapController;
   LatLng? _currentPosition;
-  final LatLng _center = const LatLng(45.521563, -122.677433);
+  final LatLng _center = const LatLng(12.9716, 77.5946);
   Set<Marker> _markers = {};
+  bool isSearching = false; // Flag to prevent redundant state updates
 
   @override
   void initState() {
@@ -41,11 +42,11 @@ class _HomeContentState extends State<HomeContent> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     rootBundle.loadString('assets/Map/map.json').then((String mapStyle) {
-      mapController.setMapStyle(mapStyle);
+      mapController?.setMapStyle(mapStyle);
     });
 
     if (_currentPosition != null) {
-      mapController.animateCamera(
+      mapController?.animateCamera(
         CameraUpdate.newLatLng(_currentPosition!),
       );
       _updateMarkers();
@@ -78,31 +79,36 @@ class _HomeContentState extends State<HomeContent> {
       _currentPosition = LatLng(position.latitude, position.longitude);
     });
 
-    if (mapController != null) {
-      mapController.animateCamera(
-        CameraUpdate.newLatLng(_currentPosition!),
-      );
-      _updateMarkers();
-    }
+    mapController?.animateCamera(
+      CameraUpdate.newLatLng(_currentPosition!),
+    );
+    _updateMarkers();
   }
 
   void _updateMarkers() {
-    setState(() {
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('current_location'),
-          position: _currentPosition!,
-          infoWindow: const InfoWindow(title: 'Your Location'),
-        ),
-      );
-    });
+    if (_currentPosition != null) {
+      setState(() {
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('current_location'),
+            position: _currentPosition!,
+            infoWindow: const InfoWindow(title: 'Your Location'),
+          ),
+        );
+      });
+    }
   }
 
   Future<void> handleSearchRequest(String searchChargerID) async {
+    if (isSearching) return; // Prevent redundant calls
     if (searchChargerID.isEmpty) {
       showErrorDialog(context, 'Please enter a charger ID.');
       return;
     }
+
+    setState(() {
+      isSearching = true; // Set the flag to true
+    });
 
     try {
       final response = await http.post(
@@ -116,23 +122,73 @@ class _HomeContentState extends State<HomeContent> {
       );
 
       if (response.statusCode == 200) {
+        print("AnishKumarAK");
         final data = json.decode(response.body);
-        print(data);
         setState(() {
           this.searchChargerID = searchChargerID;
         });
+
+        // Show dialog to select a connector
+        await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          isDismissible: false,
+          enableDrag: false,
+          backgroundColor: Colors.black,
+          builder: (BuildContext context) {
+            return Padding(
+              padding: MediaQuery.of(context).viewInsets,
+              child: ConnectorSelectionDialog(
+                chargerData: data['socketGunConfig'] ?? {},
+                onConnectorSelected: (connectorId, connectorType) {
+                  updateConnectorUser(searchChargerID, connectorId, connectorType);
+                },
+              ),
+            );
+          },
+        );
+      } else {
+        final errorData = json.decode(response.body);
+        showErrorDialog(context, errorData['message']);
+      }
+    } catch (error) {
+      showErrorDialog(context, error.toString());
+    } finally {
+      setState(() {
+        isSearching = false; // Reset the flag
+      });
+    }
+  }
+
+  Future<void> updateConnectorUser(String searchChargerID, int connectorId, int connectorType) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://122.166.210.142:9098/updateConnectorUser'), // Replace with your actual backend URL
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'searchChargerID': searchChargerID,
+          'Username': widget.username,
+          'user_id': widget.userId,
+          'connector_id': connectorId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        Navigator.pop(context); // Close the ConnectorSelectionDialog if open
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => Charging(
               searchChargerID: searchChargerID,
               username: widget.username,
+              userId: widget.userId,
+              connector_id: connectorId,
+              connector_type: connectorType,
             ),
           ),
         );
       } else {
         final errorData = json.decode(response.body);
-        print(errorData);
         showErrorDialog(context, errorData['message']);
       }
     } catch (error) {
@@ -172,39 +228,6 @@ class _HomeContentState extends State<HomeContent> {
     });
   }
 
-  Future<void> fetchAvailableChargers() async {
-    setState(() {
-      isLoading = true; // Set loading to true
-    });
-
-    try {
-      final response = await http.get(
-        Uri.parse('http://122.166.210.142:9098/filterChargersWithAvailableStatus'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          availableChargers = data['availableChargers'];
-          activeFilter = 'Available Chargers'; // Set active filter
-          isLoading = false; // Set loading to false
-        });
-      } else {
-        final errorData = json.decode(response.body);
-        showErrorDialog(context, errorData['message']);
-        setState(() {
-          isLoading = false; // Set loading to false
-        });
-
-      }
-    } catch (error) {
-      showErrorDialog(context, error.toString());
-      setState(() {
-        isLoading = false; // Set loading to false
-      });
-    }
-  }
-
   Future<void> fetchRecentSessionDetails() async {
     setState(() {
       isLoading = true; // Set loading to true
@@ -215,14 +238,14 @@ class _HomeContentState extends State<HomeContent> {
         Uri.parse('http://122.166.210.142:9098/getRecentSessionDetails'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'username': widget.username,
+          'user_id':widget.userId,
         }),
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          recentSessions = data['data'];
+          recentSessions = data['data'] ?? [];
           activeFilter = 'Previously Used'; // Set active filter
           isLoading = false; // Set loading to false
         });
@@ -253,9 +276,12 @@ class _HomeContentState extends State<HomeContent> {
               onMapCreated: _onMapCreated,
               initialCameraPosition: CameraPosition(
                 target: _currentPosition ?? _center,
-                zoom: 15.0,
+                zoom: 16.0,
               ),
               markers: _markers,
+              zoomControlsEnabled: false, // Disable default zoom controls
+              myLocationEnabled: false,  // Disable default location button
+              myLocationButtonEnabled: false,  // Disable default location button
             ),
           ),
           // Foreground content
@@ -274,8 +300,8 @@ class _HomeContentState extends State<HomeContent> {
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: const Color(0xFF1E1E1E),
-                          hintText: 'Search location...',
+                          fillColor: const Color(0xFF0E0E0E),
+                          hintText: 'Search ChargerId...',
                           hintStyle: const TextStyle(color: Colors.white70),
                           prefixIcon: const Icon(Icons.search, color: Colors.white),
                           border: OutlineInputBorder(
@@ -286,11 +312,25 @@ class _HomeContentState extends State<HomeContent> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    IconButton(
-                      icon: const Icon(Icons.qr_code, color: Colors.white, size: 30),
-                      onPressed: () {
-                        navigateToQRViewExample();
-                      },
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0E0E0E),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.qr_code, color: Colors.white, size: 30),
+                        onPressed: () {
+                          navigateToQRViewExample();
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -300,10 +340,11 @@ class _HomeContentState extends State<HomeContent> {
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: activeFilter == 'Previously Used' ? Colors.blue : const Color(0xFF1E1E1E),
+                          backgroundColor: activeFilter == 'Previously Used' ? Colors.blue : const Color(0xFF0E0E0E),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
@@ -317,21 +358,7 @@ class _HomeContentState extends State<HomeContent> {
                       const SizedBox(width: 10),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: activeFilter == 'Available Chargers' ? Colors.blue : const Color(0xFF1E1E1E),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        onPressed: () {
-                          fetchAvailableChargers(); // Fetch available chargers on button press
-                        },
-                        icon: const Icon(Icons.ev_station, color: Colors.white),
-                        label: const Text('Available Chargers', style: TextStyle(color: Colors.white)),
-                      ),
-                      const SizedBox(width: 10),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: activeFilter == 'All Chargers' ? Colors.blue : const Color(0xFF1E1E1E),
+                          backgroundColor: activeFilter == 'All Chargers' ? Colors.blue : const Color(0xFF0E0E0E),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
@@ -364,25 +391,16 @@ class _HomeContentState extends State<HomeContent> {
                     const SizedBox(width: 15),
                     if (isLoading)
                       for (var i = 0; i < 3; i++) _buildShimmerCard(), // Show shimmer cards while loading
-                    if (!isLoading && activeFilter == 'Available Chargers')
-                      for (var charger in availableChargers)
-                        _buildChargerCard(
-                          context,
-                          charger['details']['charger_id'],
-                          charger['details']['model'],
-                          charger['charger_status'],
-                          charger['details']['lat'] + ', ' + charger['details']['long'],
-                          charger['details']['unit_price'].toString(),
-                        ),
                     if (!isLoading && activeFilter == 'Previously Used')
                       for (var session in recentSessions)
                         _buildChargerCard(
                           context,
-                          session['details']['charger_id'],
-                          session['details']['model'],
-                          session['status']['charger_status'],
-                          session['details']['lat'] + ', ' + session['details']['long'],
-                          session['details']['unit_price'].toString(),
+                          session['details']['charger_id'] ?? 'Unknown ID',
+                          session['details']['model'] ?? 'Unknown Model',
+                          session['status']['charger_status'] ?? 'Unknown Status',
+                          "1.3 Km",
+                          session['unit_price']?.toString() ?? 'Unknown Price',
+                          session['status']['connector_id']?? 'Unknown Last Updated',
                         ),
                     const SizedBox(width: 15),
                   ],
@@ -392,12 +410,37 @@ class _HomeContentState extends State<HomeContent> {
             ],
           ),
           Positioned(
-            bottom: 160,
+            bottom: 190,
             right: 10,
             child: FloatingActionButton(
               backgroundColor: const Color.fromARGB(227, 76, 175, 79),
               onPressed: _getCurrentLocation,
               child: const Icon(Icons.my_location, color: Colors.white),
+            ),
+          ),
+          Positioned(
+            top: 170,
+            right: 10,
+            child: Column(
+              children: [
+                FloatingActionButton(
+                  heroTag: 'zoom_in',
+                  backgroundColor: Colors.black,
+                  onPressed: () {
+                    mapController?.animateCamera(CameraUpdate.zoomIn());
+                  },
+                  child: const Icon(Icons.zoom_in_map_rounded, color: Colors.white),
+                ),
+                const SizedBox(height: 10),
+                FloatingActionButton(
+                  heroTag: 'zoom_out',
+                  backgroundColor: Colors.black,
+                  onPressed: () {
+                    mapController?.animateCamera(CameraUpdate.zoomOut());
+                  },
+                  child: const Icon(Icons.zoom_out_map_rounded, color: Colors.red),
+                ),
+              ],
             ),
           ),
         ],
@@ -406,13 +449,14 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget _buildChargerCard(
-    BuildContext context,
-    String chargerId,
-    String model,
-    String status,
-    String location,
-    String price,
-  ) {
+      BuildContext context,
+      String chargerId,
+      String model,
+      String status,
+      String meter,
+      String price,
+      int Connector_id,
+      ) {
     Color statusColor;
     IconData statusIcon;
 
@@ -438,7 +482,7 @@ class _HomeContentState extends State<HomeContent> {
       width: 280,
       margin: const EdgeInsets.only(right: 15.0), // Added margin for spacing
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: const Color(0xFF0E0E0E),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -452,16 +496,56 @@ class _HomeContentState extends State<HomeContent> {
       child: Padding(
         padding: const EdgeInsets.all(10.0),
         child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                chargerId,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: "$chargerId - ",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        TextSpan(
+                          text: "[$Connector_id]",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue, // Change this to your desired color
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.electric_car, color: Colors.green),
+                        onPressed: () {
+                          handleSearchRequest(chargerId);
+                        },
+                      ),
+                      IconButton(
+                        icon: Transform.rotate(
+                          angle: 45 * 3.1415926535 / 180, // Convert 45 degrees to radians
+                          child: const Icon(Icons.navigation_rounded, color: Colors.red),
+                        ),
+                        onPressed: () {
+                          // Add functionality to navigate to the charger location on the map
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 5),
               Text(
@@ -494,12 +578,13 @@ class _HomeContentState extends State<HomeContent> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    location,
+                    meter,
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
                     ),
                   ),
+                  const SizedBox(width:120),
                   Row(
                     children: [
                       const Icon(
@@ -533,7 +618,7 @@ class _HomeContentState extends State<HomeContent> {
         width: 280,
         margin: const EdgeInsets.only(right: 15.0), // Added margin for spacing
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
+          color: const Color(0xFF0E0E0E),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Padding(
@@ -581,3 +666,140 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 }
+
+class ConnectorSelectionDialog extends StatefulWidget {
+  final Map<String, dynamic> chargerData;
+  final Function(int, int) onConnectorSelected;
+
+  const ConnectorSelectionDialog({
+    Key? key,
+    required this.chargerData,
+    required this.onConnectorSelected,
+  }) : super(key: key);
+
+  @override
+  _ConnectorSelectionDialogState createState() => _ConnectorSelectionDialogState();
+}
+
+class _ConnectorSelectionDialogState extends State<ConnectorSelectionDialog> {
+  int? selectedConnector;
+  int? selectedConnectorType;
+
+  bool _isFormValid() {
+    return selectedConnector != null && selectedConnectorType != null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: const BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Select Connector',
+                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // CustomGradientDivider(),
+          const SizedBox(height: 20),
+          GridView.builder(
+            shrinkWrap: true,
+            itemCount: widget.chargerData.keys.where((key) => key.startsWith('connector_')).length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 3,
+            ),
+            itemBuilder: (BuildContext context, int index) {
+              int connectorId = index + 1;
+              String connectorKey = 'connector_${connectorId}_type';
+
+              if (!widget.chargerData.containsKey(connectorKey) || widget.chargerData[connectorKey] == null) {
+                return const SizedBox.shrink(); // Empty space if connector not available
+              }
+
+              int connectorType = widget.chargerData[connectorKey];
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedConnector = connectorId;
+                    selectedConnectorType = connectorType;
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: selectedConnector == connectorId ? Colors.green : Colors.grey[800],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Connector $connectorId',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _isFormValid()
+                ? () {
+              if (selectedConnector != null && selectedConnectorType != null) {
+                widget.onConnectorSelected(selectedConnector!, selectedConnectorType!);
+                Navigator.of(context).pop();
+              }
+            }
+                : null,
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                    (Set<MaterialState> states) {
+                  if (states.contains(MaterialState.disabled)) {
+                    return Colors.green.withOpacity(0.2); // Light green when disabled
+                  }
+                  return const Color(0xFF1C8B40); // Dark green when enabled
+                },
+              ),
+              minimumSize: MaterialStateProperty.all(const Size(double.infinity, 50)),
+              shape: MaterialStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              elevation: MaterialStateProperty.all(0),
+              side: MaterialStateProperty.resolveWith<BorderSide>(
+                    (Set<MaterialState> states) {
+                  if (states.contains(MaterialState.disabled)) {
+                    return const BorderSide(color: Colors.transparent); // No border when disabled
+                  }
+                  return const BorderSide(color: Colors.transparent); // No border when enabled
+                },
+              ),
+            ),
+            child: const Text('Continue', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
         final footerState = _footerKey.currentState;
         if (footerState != null) {
           return footerState.handleBackPress();
-        }
+        } 
         return true;
       },
       child: Scaffold(

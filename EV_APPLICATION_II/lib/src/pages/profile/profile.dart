@@ -86,12 +86,14 @@ class _ProfilePageState extends State<ProfilePage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      isDismissible: false,
-      enableDrag: false,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: Colors.black,
       builder: (BuildContext context) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: EditUserModal(
+        
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.8, 
+          child:  EditUserModal(
             username: widget.username,
             email: email ?? '',
             phoneNo: phoneNo,
@@ -101,7 +103,7 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       },
     ).then((result) {
-      // Check if result is 'refresh' to trigger data fetch
+    //   // Check if result is 'refresh' to trigger data fetch
       if (result == 'refresh') {
         fetchUserDetails();
         final userImageProvider = Provider.of<UserImageProvider>(context, listen: false);

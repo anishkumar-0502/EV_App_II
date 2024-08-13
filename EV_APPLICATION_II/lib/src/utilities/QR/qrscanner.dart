@@ -1,14 +1,12 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class QRViewExample extends StatefulWidget {
   final Function(String) handleSearchRequestCallback; // Add function parameter
 
-  const QRViewExample({Key? key, required this.handleSearchRequestCallback})
-      : super(key: key);
+  const QRViewExample({Key? key, required this.handleSearchRequestCallback}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _QRViewExampleState();
@@ -18,6 +16,7 @@ class _QRViewExampleState extends State<QRViewExample> {
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  bool _isProcessing = false; // Flag to prevent multiple calls
 
   @override
   void reassemble() {
@@ -40,10 +39,9 @@ class _QRViewExampleState extends State<QRViewExample> {
   }
 
   Widget _buildQrView(BuildContext context) {
-    var scanArea =
-        (MediaQuery.of(context).size.width < 500 || MediaQuery.of(context).size.height < 500)
-            ? 300.0
-            : 300.0;
+    var scanArea = (MediaQuery.of(context).size.width < 500 || MediaQuery.of(context).size.height < 500)
+        ? 300.0
+        : 300.0;
 
     return Stack(
       children: [
@@ -80,11 +78,7 @@ class _QRViewExampleState extends State<QRViewExample> {
               } else {
                 bool isFlashOn = snapshot.data == true;
                 return IconButton(
-                  icon: Icon(
-                    isFlashOn ? Icons.flash_on : Icons.flash_off,
-                    color: Colors.white,
-                    size: 35,
-                  ),
+                  icon: Icon(isFlashOn ? Icons.flash_on : Icons.flash_off, color: Colors.white, size: 35),
                   onPressed: () async {
                     await controller?.toggleFlash();
                     setState(() {});
@@ -104,14 +98,16 @@ class _QRViewExampleState extends State<QRViewExample> {
     });
 
     controller.scannedDataStream.listen((scanData) async {
-      setState(() {
-        result = scanData;
-      });
-
-      if (result != null && result!.code!.isNotEmpty) {
+      if (!_isProcessing && scanData.code != null && scanData.code!.isNotEmpty) {
+        setState(() {
+          _isProcessing = true; // Set the flag to prevent multiple calls
+        });
         controller.pauseCamera();
-        await widget.handleSearchRequestCallback(result!.code!);
-        Navigator.of(context).pop(result!.code);
+        await widget.handleSearchRequestCallback(scanData.code!);
+        Navigator.of(context).pop(scanData.code);
+        setState(() {
+          _isProcessing = false; // Reset the flag
+        });
       }
     });
   }
