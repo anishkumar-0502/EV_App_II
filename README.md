@@ -1,2 +1,2 @@
 # EV_App_II
-for fixing version error 
+EV Phase 2 Flutter Application
