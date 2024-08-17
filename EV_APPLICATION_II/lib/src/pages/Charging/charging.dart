@@ -216,6 +216,28 @@ class _ChargingPageState extends State<Charging> with SingleTickerProviderStateM
     });
   }
 
+  Future<void> endChargingSession(String chargerID, int? connectorId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://122.166.210.142:9098/charging/endChargingSession'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'charger_id': chargerID, 'connector_id': connectorId}),
+      );
+
+        final data = jsonDecode(response.body);
+        print("endChargingSession $data");
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Charging session ended: $data');
+      } else {
+        print('Failed to end charging session. Status code: ${response.statusCode}');
+      }
+      dispose();
+    } catch (error) {
+      print('Error ending charging session: $error');
+    }
+  }
+
   Future<void> updateSessionPriceToUser(int? connectorId) async {
     try {
       handleAlertLoadingStart(context);
@@ -246,22 +268,23 @@ class _ChargingPageState extends State<Charging> with SingleTickerProviderStateM
         print('Charging Session: $chargingSession');
         print('Updated User: $updatedUser');
 
-        void handleCloseButton() {
+        Future<void> handleCloseButton() async {
           handleLoadingStop();  // Stop loading when the button is clicked
           if (chargerStatus == "Faulted" || chargerStatus == 'Unavailable') {
             Navigator.pop(context);
           } else {
+            await endChargingSession(chargerID, widget.connector_id);
+
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => HomePage(username: username,userId: widget.userId,),
               ),
             );
-            // endChargingSession(chargerID, widget.connector_id);
           }
         }
 
-        void showCustomAlertDialog(BuildContext context, Map<String, dynamic> chargingSession, Map<String, dynamic> updatedUser) {
+        Future<void> showCustomAlertDialog(BuildContext context, Map<String, dynamic> chargingSession, Map<String, dynamic> updatedUser) async {
           showDialog(
             context: context,
             barrierDismissible: false,
@@ -463,27 +486,6 @@ class _ChargingPageState extends State<Charging> with SingleTickerProviderStateM
   }
 
 
-  Future<void> endChargingSession(String chargerID, int? connectorId) async {
-
-    try {
-      final response = await http.post(
-        Uri.parse('http://122.166.210.142:9098/charging/endChargingSession'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'charger_id': chargerID, 'connector_id': connectorId}),
-      );
-
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        print('Charging session ended: $data');
-      } else {
-        print('Failed to end charging session. Status code: ${response.statusCode}');
-      }
-      dispose();
-    } catch (error) {
-      print('Error ending charging session: $error');
-    }
-  }
 
   void RcdMsg(Map<String, dynamic> parsedMessage) async {
     final String chargerID = widget.searchChargerID;

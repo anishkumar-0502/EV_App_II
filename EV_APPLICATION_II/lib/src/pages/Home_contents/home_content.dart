@@ -24,20 +24,21 @@ class _HomeContentState extends State<HomeContent> {
   String searchChargerID = '';
   List availableChargers = [];
   List recentSessions = [];
-  String activeFilter = 'Previously Used'; // Set 'Previously Used' as active filter by default
+  String activeFilter = 'All Chargers'; // Set 'Previously Used' as active filter by default
   bool isLoading = true; // State to manage loading
   GoogleMapController? mapController;
   LatLng? _currentPosition;
   final LatLng _center = const LatLng(12.9716, 77.5946);
   Set<Marker> _markers = {};
   bool isSearching = false; // Flag to prevent redundant state updates
-
-  @override
-  void initState() {
-    super.initState();
-    fetchRecentSessionDetails(); // Fetch recent session details on initial load
-    _getCurrentLocation(); // Fetch current location
-  }
+  
+@override
+void initState() {
+  super.initState();
+  activeFilter = 'All Chargers'; // Set 'All Chargers' as active filter by default
+  fetchAllChargers(); // Fetch all chargers data on initial load
+  _getCurrentLocation(); // Fetch current location
+}
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -264,6 +265,40 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
+Future<void> fetchAllChargers() async {
+  setState(() {
+    isLoading = true; // Set loading to true
+  });
+
+  try {
+    final response = await http.get(
+      Uri.parse('http://122.166.210.142:9098/getAllChargersWithStatusAndPrice'), // Replace with your actual backend URL
+      headers: {'Content-Type': 'application/json'},
+    );
+
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        availableChargers = data['data'] ?? [];
+        activeFilter = 'All Chargers'; // Set active filter
+        isLoading = false; // Set loading to false
+      });
+    } else {
+      final errorData = json.decode(response.body);
+      showErrorDialog(context, errorData['message']);
+      setState(() {
+        isLoading = false; // Set loading to false
+      });
+    }
+  } catch (error) {
+    showErrorDialog(context, error.toString());
+    setState(() {
+      isLoading = false; // Set loading to false
+    });
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -280,8 +315,8 @@ class _HomeContentState extends State<HomeContent> {
               ),
               markers: _markers,
               zoomControlsEnabled: false, // Disable default zoom controls
-              myLocationEnabled: false,  // Disable default location button
-              myLocationButtonEnabled: false,  // Disable default location button
+              myLocationEnabled: false, // Disable default location button
+              myLocationButtonEnabled: false, // Disable default location button
             ),
           ),
           // Foreground content
@@ -344,20 +379,6 @@ class _HomeContentState extends State<HomeContent> {
                     children: [
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: activeFilter == 'Previously Used' ? Colors.blue : const Color(0xFF0E0E0E),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        onPressed: () {
-                          fetchRecentSessionDetails(); // Fetch recent session details on button press
-                        },
-                        icon: const Icon(Icons.history, color: Colors.white),
-                        label: const Text('Previously Used', style: TextStyle(color: Colors.white)),
-                      ),
-                      const SizedBox(width: 10),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
                           backgroundColor: activeFilter == 'All Chargers' ? Colors.blue : const Color(0xFF0E0E0E),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
@@ -365,19 +386,29 @@ class _HomeContentState extends State<HomeContent> {
                         ),
                         onPressed: () {
                           setState(() {
-                            isLoading = true;
-                            activeFilter = 'All Chargers';
-                            // Fetch and set all chargers data if needed
+                            activeFilter = 'All Chargers'; // Set 'All Chargers' as active filter
                           });
-                          // Simulate loading data
-                          Future.delayed(const Duration(milliseconds: 900), () {
-                            setState(() {
-                              isLoading = false;
-                            });
-                          });
+                          fetchAllChargers(); // Fetch all chargers data
                         },
                         icon: const Icon(Icons.ev_station, color: Colors.white),
                         label: const Text('All Chargers', style: TextStyle(color: Colors.white)),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: activeFilter == 'Previously Used' ? Colors.blue : const Color(0xFF0E0E0E),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            activeFilter = 'Previously Used'; // Set 'Previously Used' as active filter
+                          });
+                          fetchRecentSessionDetails(); // Fetch recent session details on button press
+                        },
+                        icon: const Icon(Icons.history, color: Colors.white),
+                        label: const Text('Previously Used', style: TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
@@ -400,17 +431,31 @@ class _HomeContentState extends State<HomeContent> {
                           session['status']['charger_status'] ?? 'Unknown Status',
                           "1.3 Km",
                           session['unit_price']?.toString() ?? 'Unknown Price',
-                          session['status']['connector_id']?? 'Unknown Last Updated',
+                          session['status']['connector_id'] ?? 0, // Assuming connector_id is an int
+                          session['details']['charger_accessibility']?.toString() ?? 'Unknown',
                         ),
-                    const SizedBox(width: 15),
+                    if (!isLoading && activeFilter == 'All Chargers')
+                      for (var charger in availableChargers)
+                        for (var status in charger['status'] ?? [])
+                          _buildChargerCard(
+                            context,
+                            charger['charger_id'] ?? 'Unknown ID',
+                            charger['model'] ?? 'Unknown Model',
+                            status['charger_status'] ?? 'Unknown Status',
+                            "1.3 Km", // Replace with actual distance if available
+                            charger['unit_price']?.toString() ?? 'Unknown Price',
+                            status['connector_id'] ?? 'Unknown Last Updated',
+                            charger['charger_accessibility']?.toString() ?? 'Unknown',
+                          ),
+
                   ],
                 ),
               ),
-              const SizedBox(height: 26), // Increased bottom margin
+              const SizedBox(height: 28,), // Increased bottom margin
             ],
           ),
           Positioned(
-            bottom: 190,
+            bottom: 200,
             right: 10,
             child: FloatingActionButton(
               backgroundColor: const Color.fromARGB(227, 76, 175, 79),
@@ -448,167 +493,181 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  Widget _buildChargerCard(
-      BuildContext context,
-      String chargerId,
-      String model,
-      String status,
-      String meter,
-      String price,
-      int Connector_id,
-      ) {
-    Color statusColor;
-    IconData statusIcon;
+Widget _buildChargerCard(
+  BuildContext context,
+  String chargerId,
+  String model,
+  String status,
+  String meter,
+  String price,
+  int connectorId,
+  String accessType, // Add this parameter to determine Public or Private
+) {
+  Color statusColor;
+  IconData statusIcon;
 
-    switch (status) {
-      case "Available":
-        statusColor = Colors.green;
-        statusIcon = Icons.check_circle;
-        break;
-      case "Unavailable":
-        statusColor = Colors.red;
-        statusIcon = Icons.cancel;
-        break;
-      case "Preparing":
-        statusColor = Colors.yellow;
-        statusIcon = Icons.hourglass_empty;
-        break;
-      default:
-        statusColor = Colors.grey;
-        statusIcon = Icons.help;
-    }
+  switch (status) {
+    case "Available":
+      statusColor = Colors.green;
+      statusIcon = Icons.check_circle;
+      break;
+    case "Unavailable":
+      statusColor = Colors.red;
+      statusIcon = Icons.cancel;
+      break;
+    case "Preparing":
+      statusColor = Colors.yellow;
+      statusIcon = Icons.hourglass_empty;
+      break;
+    default:
+      statusColor = Colors.grey;
+      statusIcon = Icons.help;
+  }
+return GestureDetector(
+  onTap: () {
+    handleSearchRequest(chargerId);
+  },
 
-    return Container(
-      width: 280,
-      margin: const EdgeInsets.only(right: 15.0), // Added margin for spacing
-      decoration: BoxDecoration(
-        color: const Color(0xFF0E0E0E),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
+    child: Stack(
+      children: [
+        // Card Container
+        Container(
+          width: 315,
+          margin: const EdgeInsets.only(right: 28,top:20), // Added margin for spacing
+          decoration: BoxDecoration(
+            color: const Color(0xFF0E0E0E),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "$chargerId - ",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        TextSpan(
-                          text: "[$Connector_id]",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue, // Change this to your desired color
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
 
+
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 3),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.electric_car, color: Colors.green),
-                        onPressed: () {
-                          handleSearchRequest(chargerId);
-                        },
-                      ),
-                      IconButton(
-                        icon: Transform.rotate(
-                          angle: 45 * 3.1415926535 / 180, // Convert 45 degrees to radians
-                          child: const Icon(Icons.navigation_rounded, color: Colors.red),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: "$chargerId - ",
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            TextSpan(
+                              text: "[$connectorId]",
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue, // Change this to your desired color
+                              ),
+                            ),
+                          ],
                         ),
-                        onPressed: () {
-                          // Add functionality to navigate to the charger location on the map
-                        },
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E1E1E),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                              child: Row(
+                                children: [
+
+                                  IconButton(
+                                    icon:
+                                    const Icon(Icons.directions, color: Colors.red),
+                                    onPressed: () {
+                                      // Add functionality to navigate to the charger location on the map
+                                    },
+                                  ),
+                                  Text('Navigate  ',style: TextStyle(color: Colors.white70),)
+                                ],
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              Text(
-                model,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Row(
-                children: [
+                  const SizedBox(height: 5),
                   Text(
-                    status,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: statusColor,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Icon(
-                    statusIcon,
-                    color: statusColor,
-                    size: 14,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    meter,
+                    model,
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
                     ),
                   ),
-                  const SizedBox(width:120),
+                  const SizedBox(height: 5),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.currency_rupee,
-                        color: Colors.orange,
+                      Text(
+                        status,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: statusColor,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Icon(
+                        statusIcon,
+                        color: statusColor,
                         size: 14,
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Text(
-                        "$price per unit",
+                        meter,
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Colors.white,
+                          color: Colors.grey,
                         ),
+                      ),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.currency_rupee,
+                            color: Colors.orange,
+                            size: 14,
+                          ),
+                          Text(
+                            "$price per unit",
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+
         ),
-      ),
-    );
-  }
+          SlantedLabel(accessType: accessType), // Add this widget here
+      ],
+    ),
+
+);
+
+}
+
 
   Widget _buildShimmerCard() {
     return Shimmer.fromColors(
@@ -666,7 +725,6 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 }
-
 class ConnectorSelectionDialog extends StatefulWidget {
   final Map<String, dynamic> chargerData;
   final Function(int, int) onConnectorSelected;
@@ -803,3 +861,62 @@ class _ConnectorSelectionDialogState extends State<ConnectorSelectionDialog> {
   }
 }
 
+
+class SlantedLabel extends StatelessWidget {
+  final String accessType;
+
+  const SlantedLabel({required this.accessType, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+  top: 0,
+  right: 28,
+  child: Stack(
+    children: [
+      ClipPath(
+        clipper: SlantClipper(),
+        child: Container(
+          color: accessType == '1' ? const Color(0xFF0E0E0E) : const Color(0xFF0E0E0E), // Background color for the shape
+          height: 40, // Adjust height as needed
+          width: 100, // Adjust width as needed
+        ),
+      ),
+     Positioned(
+  right: 18,
+  top: 5, // Adjust the position of the text
+  child: Text(
+    accessType == '1' ? 'Public' : 'Private', // Display "Public" or "Private"
+    style: TextStyle(
+      color: accessType == '1' ? Colors.green : Colors.yellow, // Blue for Public, Yellow for Private
+      fontWeight: FontWeight.normal,
+      fontSize: 15, // Adjust font size as needed
+    ),
+  ),
+),
+
+    ],
+  ),
+);
+
+  }
+}
+
+class SlantClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.lineTo(20, 0); // Move right by 20 pixels at the top
+    path.lineTo(0, size.height / 2); // Draw to the left middle point
+    path.lineTo(20, size.height); // Draw back to the bottom left corner
+    path.lineTo(size.width, size.height); // Draw to the bottom right corner
+    path.lineTo(size.width, 0); // Draw to the top right corner
+    path.close(); // Close the path
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) {
+    return false;
+  }
+}

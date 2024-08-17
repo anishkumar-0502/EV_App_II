@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../../../utilities/User_Model/ImageProvider.dart'; // Ensure you have this import
@@ -148,7 +149,7 @@ class _EditUserModalState extends State<EditUserModal> {
     final userImageProvider = Provider.of<UserImageProvider>(context);
 
     return Scaffold(
-      
+
       body: Column(
         children: [
           Container(
@@ -184,7 +185,7 @@ class _EditUserModalState extends State<EditUserModal> {
               ],
             ),
           ),
-  
+
           Expanded(
             child: SingleChildScrollView(
               child: Container(
@@ -198,133 +199,77 @@ class _EditUserModalState extends State<EditUserModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-                    Center(
-                      child: Stack(
-                        children: [
-                          GestureDetector(
-                            onTap: _pickImage,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.green, // Set the border color to green
-                                  width: 3.0, // Set the border width
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Stack(
+                          children: [
+                            GestureDetector(
+                              onTap: _pickImage,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.green,
+                                    width: 3.0,
+                                  ),
+                                ),
+                                child: CircleAvatar(
+                                  radius: 50,
+                                  backgroundImage: userImageProvider.userImage != null
+                                      ? FileImage(userImageProvider.userImage!)
+                                      : null,
+                                  child: userImageProvider.userImage == null
+                                      ? const Icon(Icons.camera_alt, color: Colors.white, size: 50)
+                                      : null,
                                 ),
                               ),
-                              child: CircleAvatar(
-                                radius: 50,
-                                backgroundImage: userImageProvider.userImage != null
-                                    ? FileImage(userImageProvider.userImage!)
-                                    : null,
-                                child: userImageProvider.userImage == null
-                                    ? const Icon(Icons.camera_alt, color: Colors.white, size: 50)
-                                    : null,
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: _pickImage,
+                                child: const CircleAvatar(
+                                  radius: 15,
+                                  backgroundColor: Colors.lightGreen,
+                                  child: Icon(Icons.edit, color: Colors.black, size: 15),
+                                ),
                               ),
                             ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: _pickImage,
-                              child: const CircleAvatar(
-                                radius: 15,
-                                backgroundColor: Colors.white,
-                                child: Icon(Icons.edit, color: Colors.black, size: 15),
+                          ],
+                        ),
+                        const SizedBox(width: 20,),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                _usernameController.text, // Display the username
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 10),
+                              Text(
+                                _emailController.text, // Display the email
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Form(
                       key: _formKey,
                       child: Column(
                         children: [
-                          TextFormField(
-                            controller: _usernameController,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: const Color.fromARGB(200, 58, 58, 60),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide.none,
-                              ),
-                              hintText: 'Username',
-                              hintStyle: const TextStyle(color: Colors.grey),
-                            ),
-                            style: const TextStyle(color: Colors.white),
-                            cursorColor: const Color(0xFF1ED760),
-                            validator: (value) {
-                              if (!_isUsernameInteracted) return null;
-                              return _validateUsername(value ?? '') ?? '';
-                            },
-                            onChanged: (value) {
-                              setState(() {}); // Always enable the button
-                            },
-                            onTap: () {
-                              setState(() {
-                                _isUsernameInteracted = true;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 20),
-                          TextFormField(
-                            controller: _emailController,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: const Color.fromARGB(200, 58, 58, 60),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide.none,
-                              ),
-                              hintText: 'Email',
-                              hintStyle: const TextStyle(color: Colors.grey),
-                            ),
-                            style: const TextStyle(color: Colors.white),
-                            cursorColor: const Color(0xFF1ED760),
-                            readOnly: true,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Email is required';
-                              }
-                              return null;
-                            },
-                            onChanged: (value) {
-                              setState(() {}); // Always enable the button
-                            },
-                          ),
-                          const SizedBox(height: 20),
-                          TextFormField(
-                            controller: _phoneController,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: const Color.fromARGB(200, 58, 58, 60),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide.none,
-                              ),
-                              hintText: 'Phone Number',
-                              hintStyle: const TextStyle(color: Colors.grey),
-                            ),
-                            style: const TextStyle(color: Colors.white),
-                            cursorColor: const Color(0xFF1ED760),
-                            keyboardType: TextInputType.phone,
-                            validator: (value) {
-                              if (!_isPhoneInteracted) return null;
-                              return (value != null && value.isNotEmpty) ? null : 'Phone number is required';
-                            },
-                            onChanged: (value) {
-                              setState(() {}); // Always enable the button
-                            },
-                            onTap: () {
-                              setState(() {
-                                _isPhoneInteracted = true;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 20),
                           TextFormField(
                             controller: _oldPasswordController,
                             decoration: InputDecoration(
@@ -383,20 +328,49 @@ class _EditUserModalState extends State<EditUserModal> {
                             },
                           ),
                           const SizedBox(height: 20),
-                          Center(
-                          child: CustomGradientButton(
-                            buttonText: 'Save Changes',
-                            onPressed: _handleUpdate,
+                          IntlPhoneField(
+                            controller: _phoneController,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: const Color.fromARGB(200, 58, 58, 60),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide.none,
+                              ),
+                              hintText: 'Phone Number',
+                              hintStyle: const TextStyle(color: Colors.grey),
+                            ),
+                            style: const TextStyle(color: Colors.white),
+                            initialCountryCode: 'IN',
+                            onChanged: (value) {
+                              setState(() {
+                                _isPhoneInteracted = true;
+                              });
+                            },
+                            onCountryChanged: (country) {
+                              print('Country changed to: ' + country.name);
+                            },
                           ),
-                        ),
-                      ],
+
+
+                          const SizedBox(height: 20),
+
+                          Center(
+                            child: CustomGradientButton(
+                              buttonText: 'Save Changes',
+                              onPressed: _handleUpdate,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
+          )
+
+
         ],
       ),
     );
