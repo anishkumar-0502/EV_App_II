@@ -34,8 +34,6 @@ class _EditUserModalState extends State<EditUserModal> {
   final TextEditingController _oldPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isUsernameInteracted = false;
-  bool _isPhoneInteracted = false;
   bool _isOldPasswordInteracted = false;
   bool _isNewPasswordVisible = false;
 
@@ -370,7 +368,6 @@ class _EditUserModalState extends State<EditUserModal> {
                             initialCountryCode: 'IN',
                             onChanged: (value) {
                               setState(() {
-                                _isPhoneInteracted = true;
                               });
                             },
                             onCountryChanged: (country) {
@@ -424,8 +421,8 @@ class CustomGradientButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
       ).copyWith(
-        elevation: MaterialStateProperty.all(0),
-        backgroundColor: MaterialStateProperty.resolveWith(
+        elevation: WidgetStateProperty.all(0),
+        backgroundColor: WidgetStateProperty.resolveWith(
               (states) => Colors.transparent,
         ),
       ),

@@ -799,7 +799,6 @@ class _ChargingPageState extends State<Charging> with SingleTickerProviderStateM
   }
 
   Future<void> handleStartTransaction() async {
-    String username = widget.username ?? '';
     String chargerID = widget.searchChargerID;
     final int? connectorId = widget.connector_id;
 
