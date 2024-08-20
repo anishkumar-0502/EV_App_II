@@ -319,20 +319,55 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                           ),
-                          SizedBox(width: 10,),
+                          SizedBox(width: 10,height: 50,),
+                          SizedBox(
+                            width: 300,
+                            child:CustomGradientDivider (),
+                          ),
+                          SizedBox(height: 20,),
                           GestureDetector(
                             onTap: () {
                               _logout(); // Correctly invoking the _logout function
                             },
                             child: Container(
-                              color: Colors.black, // No color change on tap
-
-                              child: const ListTile(
-                                title: Text('Logout', style: TextStyle(color: Colors.red)),
-                                leading: Icon(Icons.logout, color: Colors.red),
+                              // You can uncomment and use the decoration if needed
+                              // decoration: BoxDecoration(
+                              //   border: Border.all(
+                              //     width: 2,
+                              //   ),
+                              //   borderRadius: BorderRadius.circular(20),
+                              //   gradient: LinearGradient(
+                              //     colors: [
+                              //       Colors.redAccent.withOpacity(0.3), // Light red color with some transparency
+                              //       Colors.red.withOpacity(0.6),
+                              //     ],
+                              //     begin: Alignment.topLeft,
+                              //     end: Alignment.bottomRight,
+                              //   ),
+                              // ),
+                              child: ListTile(
+                                title: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center, // Center the content horizontally
+                                  children: [
+                                    Icon(
+                                      Icons.logout,
+                                      color: Colors.red,
+                                    ),
+                                    SizedBox(width: 20), // Add some space between the icon and the text
+                                    Text(
+                                      'Logout',
+                                      style: TextStyle(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                onTap: _logout,
+                                hoverColor: Colors.red.withOpacity(0.1), // Light change when hovered or tapped
+                                splashColor: Colors.redAccent.withOpacity(0.2), // Splash effect on tap
                               ),
                             ),
-                          ),
+                          )
 
                         ],
                       ),
@@ -350,6 +385,32 @@ class _ProfilePageState extends State<ProfilePage> {
               child: const Icon(Icons.help_outline, color: Colors.white, ),
             ),
           ),
+          Positioned(
+            bottom: 70,
+            right: 85,
+            child: Column(
+              children: [
+                Text(
+                  'Version : alpha 1.0.0 ',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                RichText(
+                  text: TextSpan(
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                    children: [
+                      TextSpan(text: 'Copyright © 2024 '),
+                      TextSpan(
+                        text: 'EV Power',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                      TextSpan(text: '. All rights reserved.'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
         ],
       ),
     );
@@ -369,4 +430,48 @@ class CustomClipPath extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+
+class CustomGradientDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 1.2, // Adjust this to change the overall height of the divider
+      child: CustomPaint(
+        painter: GradientPainter(),
+        child: const SizedBox.expand(),
+      ),
+    );
+  }
+}
+
+class GradientPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.centerLeft,
+        colors: [
+          Color.fromRGBO(0, 0, 0, 0.75), // Darker black shade
+          Color.fromRGBO(0, 128, 0, 0.75), // Darker green for blending
+          Colors.green, // Green color in the middle
+        ],
+        end: Alignment.center,
+      ).createShader(Rect.fromLTRB(0, 0, size.width, size.height));
+
+    final path = Path()
+      ..moveTo(0, size.height * 0.0)
+      ..quadraticBezierTo(size.width / 3, 0, size.width, size.height * 0.99)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
 }
