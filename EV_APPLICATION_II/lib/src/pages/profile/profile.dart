@@ -319,12 +319,12 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                           ),
-                          SizedBox(width: 10,height: 50,),
+                          SizedBox(width: 10,height: 30,),
                           SizedBox(
                             width: 300,
                             child:CustomGradientDivider (),
                           ),
-                          SizedBox(height: 20,),
+                          SizedBox(height: 5,),
                           GestureDetector(
                             onTap: () {
                               _logout(); // Correctly invoking the _logout function
@@ -367,7 +367,35 @@ class _ProfilePageState extends State<ProfilePage> {
                                 splashColor: Colors.redAccent.withOpacity(0.2), // Splash effect on tap
                               ),
                             ),
+                          ),
+                          SizedBox(height: 100,),
+                          Container(
+                            margin:EdgeInsets.only(bottom: 50,top: 50) ,
+
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Version : alpha 1.0.0 ',
+                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                ),
+                                RichText(
+                                  text: TextSpan(
+                                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                                    children: [
+                                      TextSpan(text: 'Copyright © 2024 '),
+                                      TextSpan(
+                                        text: 'EV Power',
+                                        style: TextStyle(color: Colors.green),
+                                      ),
+                                      TextSpan(text: '. All rights reserved.'),
+                                    ],
+                                  ),
+                                ),
+
+                              ],
+                            ),
                           )
+
 
                         ],
                       ),
@@ -385,31 +413,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: const Icon(Icons.help_outline, color: Colors.white, ),
             ),
           ),
-          Positioned(
-            bottom: 70,
-            right: 85,
-            child: Column(
-              children: [
-                Text(
-                  'Version : alpha 1.0.0 ',
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-                RichText(
-                  text: TextSpan(
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                    children: [
-                      TextSpan(text: 'Copyright © 2024 '),
-                      TextSpan(
-                        text: 'EV Power',
-                        style: TextStyle(color: Colors.green),
-                      ),
-                      TextSpan(text: '. All rights reserved.'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+
 
         ],
       ),
