@@ -271,10 +271,13 @@ Future<void> fetchAllChargers() async {
   });
 
   try {
-    final response = await http.get(
+    final response = await http.post(
       Uri.parse('http://122.166.210.142:9098/getAllChargersWithStatusAndPrice'), // Replace with your actual backend URL
       headers: {'Content-Type': 'application/json'},
-    );
+        body: json.encode({
+          'user_id':widget.userId,
+        }),
+      );
 
 
     if (response.statusCode == 200) {
@@ -775,7 +778,7 @@ class _ConnectorSelectionDialogState extends State<ConnectorSelectionDialog> {
             ],
           ),
           const SizedBox(height: 10),
-          // CustomGradientDivider(),
+          CustomGradientDivider(),
           const SizedBox(height: 20),
           GridView.builder(
             shrinkWrap: true,

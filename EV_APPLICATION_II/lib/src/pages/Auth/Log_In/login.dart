@@ -24,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isEmailInteracted = false;
   bool _isPasswordInteracted = false;
+  bool _isPasswordVisible = false;
   String? storedUser;
   String? _alertMessage;
 
@@ -95,8 +96,8 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
       } else {
-        _showAlertBanner('Login failed');
-      }
+        final data = json.decode(response.body);
+        _showAlertBanner(data['message']);}
     } catch (e) {
       _showAlertBanner('An error occurred: $e');
     }
@@ -192,7 +193,7 @@ class _LoginPageState extends State<LoginPage> {
                           const SizedBox(height: 20),
                           TextFormField(
                             controller: _passwordController,
-                            obscureText: true,
+                            obscureText: !_isPasswordVisible, // Toggle visibility based on _isPasswordVisible
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: const Color.fromARGB(200, 58, 58, 60), // Dark gray color
@@ -202,12 +203,23 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               hintText: 'Password',
                               hintStyle: const TextStyle(color: Colors.grey),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible; // Toggle visibility state
+                                  });
+                                },
+                              ),
                             ),
                             style: const TextStyle(color: Colors.white),
                             keyboardType: TextInputType.number,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(4) // Restrict to 4 digits
+                              LengthLimitingTextInputFormatter(4), // Restrict to 4 digits
                             ],
                             cursorColor: const Color(0xFF1ED760), // Cursor color
                             validator: (value) {

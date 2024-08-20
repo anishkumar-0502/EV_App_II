@@ -37,7 +37,10 @@ class _EditUserModalState extends State<EditUserModal> {
   bool _isUsernameInteracted = false;
   bool _isPhoneInteracted = false;
   bool _isOldPasswordInteracted = false;
+  bool _isNewPasswordVisible = false;
+
   bool _isNewPasswordInteracted = false;
+  bool _obscureText = true;
 
   @override
   void initState() {
@@ -117,7 +120,7 @@ class _EditUserModalState extends State<EditUserModal> {
         Navigator.pop(context, 'refresh');
       } else {
         final responseData = jsonDecode(response.body);
-        final errorMessage = responseData['error_message'] ?? 'Update failed';
+        final errorMessage = responseData['error_message'] ?? "Failed to update; ensure your credentials are correct.";
         _showAlertBanner(errorMessage);
       }
     } catch (e) {
@@ -270,64 +273,87 @@ class _EditUserModalState extends State<EditUserModal> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          TextFormField(
-                            controller: _oldPasswordController,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: const Color.fromARGB(200, 58, 58, 60),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide.none,
-                              ),
-                              hintText: 'Old Password (Optional)',
-                              hintStyle: const TextStyle(color: Colors.grey),
+                        TextFormField(
+                        controller: _oldPasswordController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color.fromARGB(200, 58, 58, 60),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide.none,
+                          ),
+                          hintText: "Current Password (Required)",
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureText ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.grey,
                             ),
-                            style: const TextStyle(color: Colors.white),
-                            cursorColor: const Color(0xFF1ED760),
-                            obscureText: true,
-                            validator: (value) {
-                              if (!_isOldPasswordInteracted) return null;
-                              return _validatePassword(value, isNew: false) ?? '';
-                            },
-                            onChanged: (value) {
-                              setState(() {}); // Always enable the button
-                            },
-                            onTap: () {
+                            onPressed: () {
                               setState(() {
-                                _isOldPasswordInteracted = true;
+                                _obscureText = !_obscureText;
                               });
                             },
                           ),
+                        ),
+                        style: const TextStyle(color: Colors.white),
+                        cursorColor: const Color(0xFF1ED760),
+                        obscureText: _obscureText,
+                        validator: (value) {
+                          if (!_isOldPasswordInteracted) return null;
+                          return _validatePassword(value, isNew: false) ?? '';
+                        },
+                        onChanged: (value) {
+                          setState(() {}); // Always enable the button
+                        },
+                        onTap: () {
+                          setState(() {
+                            _isOldPasswordInteracted = true;
+                          });
+                        },
+                      ),
                           const SizedBox(height: 20),
-                          TextFormField(
-                            controller: _newPasswordController,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: const Color.fromARGB(200, 58, 58, 60),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide.none,
-                              ),
-                              hintText: 'New Password (Optional)',
-                              hintStyle: const TextStyle(color: Colors.grey),
+                        TextFormField(
+                          controller: _newPasswordController,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: const Color.fromARGB(200, 58, 58, 60),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide.none,
                             ),
-                            style: const TextStyle(color: Colors.white),
-                            cursorColor: const Color(0xFF1ED760),
-                            obscureText: true,
-                            validator: (value) {
-                              if (!_isNewPasswordInteracted) return null;
-                              return _validatePassword(value, isNew: true) ?? '';
-                            },
-                            onChanged: (value) {
-                              setState(() {}); // Always enable the button
-                            },
-                            onTap: () {
-                              setState(() {
-                                _isNewPasswordInteracted = true;
-                              });
-                            },
+                            hintText: "New Password (Only if you want to update)",
+                            hintStyle: const TextStyle(color: Colors.grey),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isNewPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isNewPasswordVisible = !_isNewPasswordVisible; // Toggle visibility state
+                                });
+                              },
+                            ),
                           ),
-                          const SizedBox(height: 20),
+                          style: const TextStyle(color: Colors.white),
+                          cursorColor: const Color(0xFF1ED760),
+                          obscureText: !_isNewPasswordVisible, // Toggle based on _isNewPasswordVisible
+                          validator: (value) {
+                            if (!_isNewPasswordInteracted) return null;
+                            return _validatePassword(value, isNew: true) ?? '';
+                          },
+                          onChanged: (value) {
+                            setState(() {}); // Always enable the button
+                          },
+                          onTap: () {
+                            setState(() {
+                              _isNewPasswordInteracted = true;
+                            });
+                          },
+                        ),
+
+                        const SizedBox(height: 20),
                           IntlPhoneField(
                             controller: _phoneController,
                             decoration: InputDecoration(

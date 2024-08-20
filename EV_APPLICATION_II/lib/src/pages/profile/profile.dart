@@ -360,12 +360,12 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
-          Positioned(
-            top: 35,
-            right: 20,
+          Positioned (
+            top: 61,
+            right: 12,
             child: GestureDetector(
               onTap: _showHelpModal ,
-              child: const Icon(Icons.help_outline, color: Colors.white, size: 30),
+              child: const Icon(Icons.help_outline, color: Colors.white, ),
             ),
           ),
         ],

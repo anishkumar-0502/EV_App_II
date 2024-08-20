@@ -133,7 +133,7 @@ class _WalletPageState extends State<WalletPage> {
         'key': 'rzp_test_dcep4q6wzcVYmr',
         'amount': data['amount'],
         'currency': data['currency'],
-        'name': 'Outdid Tech',
+        'name': 'Anish kumar A',
         'description': 'Wallet Recharge',
         'order_id': data['id'],
         'prefill': {'name': username},

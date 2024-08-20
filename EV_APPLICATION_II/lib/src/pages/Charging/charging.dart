@@ -303,18 +303,22 @@ class _ChargingPageState extends State<Charging> with SingleTickerProviderStateM
 
         showCustomAlertDialog(context, chargingSession, updatedUser);
       } else {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: const Text('Updation unsuccessful!'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
+        // showDialog(
+        //   context: context,
+        //   builder: (context) => AlertDialog(
+        //     title: const Text('Error'),
+        //     content: const Text('Updation unsuccessful!'),
+        //     actions: [
+        //       TextButton(
+        //         onPressed: () => Navigator.pop(context),
+        //         child: const Text('OK'),
+        //       ),
+        //     ],
+        //   ),
+        // );
+        AlertBanner(
+          message:'Updation unsuccessful!' ,
+          backgroundColor: Colors.red,
         );
       }
     } catch (error) {
@@ -322,18 +326,22 @@ class _ChargingPageState extends State<Charging> with SingleTickerProviderStateM
         showAlertLoading = false;
       });
 
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text('Failed to update charging details: $error'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+      // showDialog(
+      //   context: context,
+      //   builder: (context) => AlertDialog(
+      //     title: const Text('Error'),
+      //     content: Text('Failed to update charging details: $error'),
+      //     actions: [
+      //       TextButton(
+      //         onPressed: () => Navigator.pop(context),
+      //         child: const Text('OK'),
+      //       ),
+      //     ],
+      //   ),
+      // );
+      AlertBanner(
+        message:'Failed to update charging details: $error' ,
+        backgroundColor: Colors.red,
       );
 
       print('Error updating charging details: $error');

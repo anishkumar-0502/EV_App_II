@@ -24,6 +24,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isEmailInteracted = false;
   bool _isPhoneInteracted = false;
   bool _isPasswordInteracted = false;
+  bool _isPasswordVisible = false;
   String? _alertMessage;
 
   @override
@@ -81,8 +82,9 @@ class _RegisterPageState extends State<RegisterPage> {
         // Handle successful registration
         Navigator.pop(context); // Assuming you want to pop back after registration
       } else {
-        _showAlertBanner('Registration failed');
-      }
+        final data = json.decode(response.body);
+        _showAlertBanner(data['message']);}
+      
     } catch (e) {
       _showAlertBanner('An error occurred: $e');
     }
@@ -210,7 +212,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: !_isPasswordVisible, // Control password visibility
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: const Color.fromARGB(200, 58, 58, 60), // Dark gray color
@@ -220,6 +222,17 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         hintText: 'Password',
                         hintStyle: const TextStyle(color: Colors.grey),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
                       ),
                       style: const TextStyle(color: Colors.white),
                       cursorColor: const Color(0xFF1ED760), // Cursor color
