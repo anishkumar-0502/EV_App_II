@@ -90,7 +90,7 @@ class _ProfilePageState extends State<ProfilePage> {
       enableDrag: true,
       backgroundColor: Colors.black,
       builder: (BuildContext context) {
-        
+
         return Container(
           height: MediaQuery.of(context).size.height * 0.75,
           child:  EditUserModal(
@@ -193,83 +193,50 @@ class _ProfilePageState extends State<ProfilePage> {
                         style: TextStyle(color: Colors.grey[400], fontSize: 16),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 20,width: 20,),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                width: 2,
-                                color: Colors.green,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              gradient: LinearGradient(
-                                colors: [Colors.green.withOpacity(0.1), Colors.transparent],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                            ),
-                            child: ElevatedButton(
-                              onPressed: _showEditUserModal,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                foregroundColor: Colors.white, // Make the text color white
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                elevation: 1,
-                                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                                shadowColor: Colors.transparent,
-                                minimumSize: const Size(140, 50), // Ensure both buttons have the same size
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.edit, size: 16, color: Colors.white), // Make the icon color white
-                                  SizedBox(width: 8),
-                                  Text('Edit profile', style: TextStyle(color: Colors.white, fontSize: 14)), // Make the text color white
-                                ],
-                              ),
-                            ),
+                        Container(
+                        width: 200, // Increase the width of the container
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            width: 2,
+
                           ),
-                          const SizedBox(width: 20),
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                width: 2,
-                                color: Colors.red,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              gradient: LinearGradient(
-                                colors: [Colors.red.withOpacity(0.1), Colors.transparent],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                            ),
-                            child: ElevatedButton(
-                              onPressed: _logout,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                foregroundColor: Colors.white, // Make the text color white
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                elevation: 1,
-                                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                                shadowColor: Colors.transparent,
-                                minimumSize: const Size(140, 50), // Ensure both buttons have the same size
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.logout, color: Colors.white, size: 16), // Make the icon color white
-                                  SizedBox(width: 8),
-                                  Text('Logout', style: TextStyle(color: Colors.white, fontSize: 14)), // Make the text color white
-                                ],
-                              ),
-                            ),
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.lightGreenAccent.withOpacity(0.3), // Light green color with some transparency
+                              Colors.lightGreen.withOpacity(0.6)
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
+                        ),
+                        child: ElevatedButton(
+                          onPressed: _showEditUserModal,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent, // Keep the button background transparent
+                            foregroundColor: Colors.white, // Text and icon color white
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            elevation: 1,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15), // Adjust padding for a larger button
+                            shadowColor: Colors.transparent,
+                            minimumSize: const Size(180, 50), // Ensure the button has the desired size
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.edit, size: 16, color: Colors.white), // White icon color
+                              SizedBox(width: 8),
+                              Text('Edit profile', style: TextStyle(color: Colors.white, fontSize: 14)), // White text color
+                            ],
+                          ),
+                        ),
+                      ),
                         ],
                       ),
 
@@ -352,6 +319,21 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                           ),
+                          SizedBox(width: 10,),
+                          GestureDetector(
+                            onTap: () {
+                              _logout(); // Correctly invoking the _logout function
+                            },
+                            child: Container(
+                              color: Colors.black, // No color change on tap
+
+                              child: const ListTile(
+                                title: Text('Logout', style: TextStyle(color: Colors.red)),
+                                leading: Icon(Icons.logout, color: Colors.red),
+                              ),
+                            ),
+                          ),
+
                         ],
                       ),
                     ),

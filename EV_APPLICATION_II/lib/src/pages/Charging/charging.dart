@@ -1598,14 +1598,14 @@ Widget _buildAnimatedTempColorCircle() {
                                                             mainAxisAlignment: MainAxisAlignment.center,
                                                             children: [
                                                               Text(
-                                                                frequency.isNotEmpty ? frequency : '0',
+                                                                voltage.isNotEmpty ? voltage : '0',
                                                                 style: const TextStyle(
                                                                   color: Colors.white,
                                                                   fontSize: 20, // Adjusted font size
                                                                 ),
                                                               ),
                                                               const Text(
-                                                                'Frequency',
+                                                                'Voltage',
                                                                 style: TextStyle(
                                                                   color: Colors.white,
                                                                   fontSize: 16, // Adjusted font size
@@ -1678,14 +1678,14 @@ Widget _buildAnimatedTempColorCircle() {
                                                         mainAxisAlignment: MainAxisAlignment.center,
                                                         children: [
                                                           Text(
-                                                            voltage.isNotEmpty ? voltage : '0',
+                                                            frequency.isNotEmpty ? frequency : '0',
                                                             style: const TextStyle(
                                                               color: Colors.white,
                                                               fontSize: 20, // Adjusted font size
                                                             ),
                                                           ),
                                                           const Text(
-                                                            'Voltage',
+                                                            'Frequency',
                                                             style: TextStyle(
                                                               color: Colors.white,
                                                               fontSize: 16, // Adjusted font size
